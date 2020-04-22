@@ -1,15 +1,17 @@
 $(document).ready(function(){
 
-  $('form').on('submit', function(){
-
+  $('form').on('submit', function(e){
+    // alert('fd')
+    // e.preventDefault();
       var item = $('form input');
       var todo = {item: item.val()};
-
+      console.log(todo);
       $.ajax({
         type: 'POST',
         url: '/todo',
         data: todo,
         success: function(data){
+          // alert(data);
           //do something with the data via front-end framework
           location.reload();
         }
