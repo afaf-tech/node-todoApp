@@ -1,30 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo-List</title>
-    <link rel="stylesheet" type="text/css" href="/assets/styles.css">
-    
-</head>
-<body>
-    <h1>My todoList</h1>
-    <div id="todo-table">
-        <form>
-            <input type="text" name="item" placeholder="Add new item ..." required>
-            <button value="submit">Add Item</button>
-        </form>
-        
-        
-        <ul>
-            <% for(var i=0; i< todos.length; i++){ %>
-                <li><%= todos[i].item %></li>
-                <% } %>
-            </ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d1521" />
+    <title>Todo List</title>
+    <link rel="icon" href="/assets/logo.png" type="image/png" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <img class="logo" src="/assets/logo.png" alt="" width="48" height="48" />
+        <div>
+          <h1>My todo list</h1>
+          <p class="subtitle">Small tasks, one at a time.</p>
         </div>
-        
-        
-    <script src="/assets/jquery-4.5.js"></script>
-    <script src="/assets/todo-list.js"></script>
-</body>
+      </header>
+
+      <form id="todo-form" class="todo-form" autocomplete="off">
+        <label class="sr-only" for="item">New todo</label>
+        <input
+          id="item"
+          name="item"
+          type="text"
+          placeholder="What needs doing?"
+          maxlength="200"
+          required
+        />
+        <button type="submit">Add</button>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <ul id="todo-list" class="todo-list">
+        <% todos.forEach((todo) => { %>
+        <li
+          class="todo<%= todo.completed ? ' is-done' : '' %>"
+          data-id="<%= todo.id %>"
+        >
+          <label class="todo-label">
+            <input
+              class="toggle"
+              type="checkbox"
+              <%= todo.completed ? 'checked' : '' %>
+            />
+            <span class="todo-text"><%= todo.item %></span>
+          </label>
+          <button
+            class="delete"
+            type="button"
+            aria-label="Delete <%= todo.item %>"
+          >
+            &times;
+          </button>
+        </li>
+        <% }) %>
+      </ul>
+
+      <p id="empty" class="empty"<%= todos.length ? ' hidden' : '' %>>
+        Nothing here yet. Add your first task above.
+      </p>
+
+      <p id="count" class="count">
+        <%= todos.length %> <%= todos.length === 1 ? 'item' : 'items' %>
+      </p>
+
+      <noscript>
+        <p class="status is-error">
+          This app needs JavaScript to add, complete and delete todos.
+        </p>
+      </noscript>
+    </main>
+  </body>
 </html>
