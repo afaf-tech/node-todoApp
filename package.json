@@ -1,17 +1,50 @@
 {
-  "name": "ninjanode31",
-  "version": "1.0.0",
-  "description": "a little to-do app",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "node-todo-app",
+  "version": "2.0.0",
+  "description": "A small, modern to-do app built with Express, MongoDB and vanilla JavaScript",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20.19.0"
   },
-  "author": "",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-reporter=spec",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "todo",
+    "express",
+    "mongodb",
+    "mongoose",
+    "ejs"
+  ],
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "ejs": "^3.0.2",
-    "express": "^4.17.1",
-    "mongoose": "^5.9.10"
+    "compression": "^1.8.2",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "mongoose": "^9.12.1",
+    "morgan": "^1.12.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "mongodb-memory-server": "^11.3.0",
+    "prettier": "^3.10.1",
+    "supertest": "^7.3.2"
+  },
+  "allowScripts": {
+    "mongodb-memory-server@11.3.0": true
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
   }
 }
