@@ -15,7 +15,7 @@ export default [
     },
   },
   {
-    files: ['public/assets/app.js'],
+    files: ['public/assets/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'script',

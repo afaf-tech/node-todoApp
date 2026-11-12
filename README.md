@@ -5,12 +5,16 @@ JavaScript. Originally a Node.js tutorial project, now modernized end to end.
 
 ## Features
 
-- Add, complete and delete todos without reloading the page
+- Add, complete, edit and delete tasks without reloading the page
+- Filter by all / active / done, with live counts and a progress bar
+- Clear completed tasks in one action
+- Light and dark theme toggle that remembers your choice
+- Responsive, keyboard-accessible UI with no frontend framework or jQuery
 - REST API with validation and proper HTTP status codes
 - Server-rendered page (works before the JavaScript takes over)
-- Responsive dark UI, keyboard accessible, no frontend framework or jQuery
 - Config through environment variables — no credentials in the source
 - Security headers (Helmet), gzip compression and request logging
+- NoSQL-injection hardening (`sanitizeFilter` + strict payload validation)
 - Integration tests against a real, in-memory MongoDB
 - ESLint + Prettier, GitHub Actions CI, Docker support
 
@@ -89,12 +93,13 @@ always take precedence over the file.
 
 Base path: `/api/todos`
 
-| Method   | Path             | Body                    | Success |
-| -------- | ---------------- | ----------------------- | ------- |
-| `GET`    | `/api/todos`     | —                       | `200`   |
-| `POST`   | `/api/todos`     | `{ "item": "text" }`    | `201`   |
-| `PATCH`  | `/api/todos/:id` | `{ "completed": true }` | `200`   |
-| `DELETE` | `/api/todos/:id` | —                       | `204`   |
+| Method   | Path                   | Body                                         | Success |
+| -------- | ---------------------- | -------------------------------------------- | ------- |
+| `GET`    | `/api/todos`           | —                                            | `200`   |
+| `POST`   | `/api/todos`           | `{ "item": "text" }`                         | `201`   |
+| `PATCH`  | `/api/todos/:id`       | `{ "completed": true }` or `{ "item": "…" }` | `200`   |
+| `DELETE` | `/api/todos/completed` | —                                            | `200`   |
+| `DELETE` | `/api/todos/:id`       | —                                            | `204`   |
 
 Errors are returned as JSON, for example:
 
@@ -117,6 +122,12 @@ curl -X POST http://localhost:7000/api/todos \
 curl -X PATCH http://localhost:7000/api/todos/<id> \
   -H 'Content-Type: application/json' \
   -d '{"completed":true}'
+
+curl -X PATCH http://localhost:7000/api/todos/<id> \
+  -H 'Content-Type: application/json' \
+  -d '{"item":"Buy oat milk"}'
+
+curl -X DELETE http://localhost:7000/api/todos/completed
 
 curl -X DELETE http://localhost:7000/api/todos/<id>
 ```
@@ -143,11 +154,24 @@ tests/                Integration tests
 ## Docker
 
 ```text
-Dockerfile            Production image (multi-stage-free, non-root user)
+Dockerfile            Production image (non-root user)
 docker-compose.yml    App + MongoDB 8 + health checks
 ```
 
 ## A note on security
+
+### Dependencies
+
+The app uses Mongoose 9.12.1. **CVE-2024-53900** (the `$where` search-injection
+issue) is fixed in Mongoose 8.8.3, so this version is not affected. Later
+Mongoose advisories are also resolved, and `npm audit` reports no known
+vulnerabilities.
+
+As defense in depth, Mongoose's `sanitizeFilter` is enabled and the API only
+accepts strict primitive payloads (`item` must be a string, `completed` must be
+a boolean). Regression tests cover operator-style injection payloads.
+
+### Credentials
 
 The original version of this project contained a hard-coded MongoDB Atlas
 connection string. It has been removed and replaced with `MONGODB_URI`.

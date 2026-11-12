@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 
 const { createApp } = await import('../src/app.js');
+const { connectDb, disconnectDb } = await import('../src/db.js');
 const { Todo } = await import('../src/models/todo.js');
 
 let mongo;
@@ -15,12 +16,12 @@ let app;
 
 before(async () => {
   mongo = await MongoMemoryServer.create();
-  await mongoose.connect(mongo.getUri());
+  await connectDb(mongo.getUri());
   app = createApp();
 });
 
 after(async () => {
-  await mongoose.disconnect();
+  await disconnectDb();
   await mongo.stop();
 });
 
@@ -117,6 +118,72 @@ test('PATCH /api/todos/:id validates the id and payload', async () => {
     .patch(`/api/todos/${new mongoose.Types.ObjectId()}`)
     .send({ completed: true })
     .expect(404);
+});
+
+test('PATCH /api/todos/:id edits the item text', async () => {
+  const created = await request(app)
+    .post('/api/todos')
+    .send({ item: 'old text' })
+    .expect(201);
+
+  const response = await request(app)
+    .patch(`/api/todos/${created.body.todo.id}`)
+    .send({ item: '  new text  ' })
+    .expect(200);
+
+  assert.equal(response.body.todo.item, 'new text');
+  assert.equal(response.body.todo.completed, false);
+
+  await request(app)
+    .patch(`/api/todos/${created.body.todo.id}`)
+    .send({ item: 'x'.repeat(201) })
+    .expect(422);
+});
+
+test('API rejects NoSQL operator payloads', async () => {
+  await request(app)
+    .post('/api/todos')
+    .send({ item: { $ne: null } })
+    .expect(400);
+
+  const created = await Todo.create({ item: 'safe value' });
+
+  await request(app)
+    .patch(`/api/todos/${created.id}`)
+    .send({ completed: { $ne: false } })
+    .expect(400);
+
+  await request(app)
+    .patch(`/api/todos/${created.id}`)
+    .send({ item: { $gt: '' } })
+    .expect(400);
+
+  // sanitizeFilter wraps operator-style filters in $eq, so Mongoose refuses
+  // to cast them instead of treating them as query operators.
+  await assert.rejects(
+    () => Todo.find({ item: { $ne: 'other value' } }).exec(),
+    /Cast to string failed/,
+  );
+});
+
+test('DELETE /api/todos/completed clears only completed todos', async () => {
+  await Todo.create([
+    { item: 'done one', completed: true },
+    { item: 'still active', completed: false },
+    { item: 'done two', completed: true },
+  ]);
+
+  const response = await request(app)
+    .delete('/api/todos/completed')
+    .expect(200);
+
+  assert.equal(response.body.deleted, 2);
+
+  const remaining = await Todo.find();
+  assert.deepEqual(
+    remaining.map((todo) => todo.item),
+    ['still active'],
+  );
 });
 
 test('DELETE /api/todos/:id removes the todo', async () => {

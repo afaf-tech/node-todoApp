@@ -43,5 +43,8 @@
   },
   "allowScripts": {
     "mongodb-memory-server@11.3.0": true
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
   }
 }
